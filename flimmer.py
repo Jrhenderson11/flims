@@ -12,15 +12,8 @@ from getpass import getpass
 from colorama import Fore, Style
 from multiprocessing.dummy import Pool as ThreadPool
 
-def print_green(line):
-	print(Fore.GREEN + Style.BRIGHT + line +Fore.RESET + Style.NORMAL)
-
-def print_blue(line):
-	print(Fore.BLUE + Style.BRIGHT + line +Fore.RESET + Style.NORMAL)
-
-def print_red(line):
-	print(Fore.RED + Style.BRIGHT + line +Fore.RESET + Style.NORMAL)
-
+def red(string):
+	return Fore.RED + Style.BRIGHT + string +Fore.RESET + Style.NORMAL
 
 class Querier():
 
@@ -35,10 +28,7 @@ class Querier():
 
 	def get_films_note(self):
 
-		d = self.get_dict()
-		
-		for k,v in d.items():
-
+		for k,v in self.get_dict().items():
 			if 'FILM' in k:
 				return self.connector.get_note(v)[0]['content']
 
@@ -74,6 +64,20 @@ def get_film_meth(name):
 def filter_films(contents):
 	'''Return list of lines from text'''
 	return list(filter(lambda x : '#' not in x and 'http' not in x, filter(None, contents.split('\n'))))
+
+
+
+def format_genre_list(genres):
+	formatted = []
+	colour_dict = {'Comedy':Fore.LIGHTBLUE_EX + Style.BRIGHT, 'Sci-Fi':Fore.LIGHTGREEN_EX + Style.BRIGHT, 'Horror': Fore.RED + Style.DIM, 'Romance':Fore.LIGHTMAGENTA_EX + Style.BRIGHT, 'Action':Fore.RED + Style.BRIGHT, 'Thriller':Fore.RED, 'Drama':Fore.GREEN, 'Mystery':Fore.YELLOW, 'Crime':Fore.LIGHTRED_EX + Style.BRIGHT, 'Adventure': Fore.YELLOW + Style.BRIGHT, 'Fantasy':Fore.MAGENTA}
+	
+	for g in genres:
+		if g in colour_dict:
+			formatted.append(colour_dict[g] + g + Fore.RESET + Style.NORMAL)
+		else:
+			formatted.append(g)
+
+	return ' '.join(formatted)
 
 
 if __name__ == '__main__':
@@ -112,6 +116,7 @@ if __name__ == '__main__':
 	
 		pickle_file = pickle.Unpickler(open(pickle_file_name, 'rb'))
 		fdict = pickle_file.load()
+
 	else:
 		films_to_retrieve = remote_films
 
@@ -120,7 +125,7 @@ if __name__ == '__main__':
 
 	if films_to_retrieve != []:
 
-		print('[+] Retrieving {} film details'.format(len(films_to_retrieve)))
+		print('[+] Retrieving {} film details'.format(red(str(len(films_to_retrieve)))))
 
 		# Spin up threads to retrieve from IMDb
 		pool = ThreadPool(len(films_to_retrieve))
@@ -140,8 +145,12 @@ if __name__ == '__main__':
 		pickle_file = pickle.Pickler(open(pickle_file_name, 'wb'))
 		pickle_file.dump(retrieved)
 
-	# Print out all film summaries
-	summaries = {k:'{0} ({1}): {2}'.format(v['title'], v['year'], str(v['genres'])) for k,v in fdict.items()}
+	# # Print out all film summaries
 
-	pp = pprint.PrettyPrinter(width=120)
-	pp.pprint(summaries)
+	table = [(v['title'], str(v['year']), format_genre_list(v['genres'])) for k,v in fdict.items()]
+
+
+	col_width = [max(len(x) for x in col) for col in zip(*table)]
+	for line in table:
+		print(" " + " | ".join(["{:{}}".format(x, col_width[i]) for i, x in enumerate(line)]))
+
