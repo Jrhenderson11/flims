@@ -6,6 +6,7 @@ import json
 import imdb
 import pickle
 import pprint
+import argparse
 import simplenote
 
 from getpass import getpass
@@ -66,7 +67,6 @@ def filter_films(contents):
 	return list(filter(lambda x : '#' not in x and 'http' not in x, filter(None, contents.split('\n'))))
 
 
-
 def format_genre_list(genres):
 	formatted = []
 	colour_dict = {'Comedy':Fore.LIGHTBLUE_EX + Style.BRIGHT, 'Sci-Fi':Fore.LIGHTGREEN_EX + Style.BRIGHT, 'Horror': Fore.RED + Style.DIM, 'Romance':Fore.LIGHTMAGENTA_EX + Style.BRIGHT, 'Action':Fore.RED + Style.BRIGHT, 'Thriller':Fore.RED, 'Drama':Fore.GREEN, 'Mystery':Fore.YELLOW, 'Crime':Fore.LIGHTRED_EX + Style.BRIGHT, 'Adventure': Fore.YELLOW + Style.BRIGHT, 'Fantasy':Fore.MAGENTA}
@@ -81,7 +81,10 @@ def format_genre_list(genres):
 
 
 if __name__ == '__main__':
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-r', '--refresh', action='store_true', help='Forces tool to ignore cached data and refresh from remote')
 
+	args = parser.parse_args()
 	# Read credentials
 	try:
 		with open('creds.json', 'r') as f:
@@ -107,7 +110,7 @@ if __name__ == '__main__':
 
 	# Check local file
 	files = os.listdir()
-	if 'retrieved_flims' in files and pickle_file_name in files:
+	if not args.refresh and ('retrieved_flims' in files and pickle_file_name in files):
 
 		contents = open('retrieved_flims', 'r').read()
 		local_films = filter_films(contents)
@@ -145,7 +148,7 @@ if __name__ == '__main__':
 		pickle_file = pickle.Pickler(open(pickle_file_name, 'wb'))
 		pickle_file.dump(retrieved)
 
-	# # Print out all film summaries
+	# Print out all film summaries
 
 	table = [(v['title'], str(v['year']), format_genre_list(v['genres'])) for k,v in fdict.items()]
 
