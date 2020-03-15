@@ -77,7 +77,7 @@ def format_genre_list(genres):
 		else:
 			formatted.append(g)
 
-	return ' '.join(formatted)
+	return ' '.join(formatted).strip()
 
 
 if __name__ == '__main__':
@@ -150,10 +150,10 @@ if __name__ == '__main__':
 
 	# Print out all film summaries
 
-	table = [(v['title'], str(v['year']), format_genre_list(v['genres'])) for k,v in fdict.items()]
+	table = [(v['title'][:44], str(v['year']), format_genre_list(v['genres'])) for k,v in fdict.items()]
 
 
 	col_width = [max(len(x) for x in col) for col in zip(*table)]
+	col_width[2] = 30
 	for line in table:
 		print(" " + " | ".join(["{:{}}".format(x, col_width[i]) for i, x in enumerate(line)]))
-
