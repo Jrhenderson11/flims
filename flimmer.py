@@ -30,7 +30,6 @@ class Querier():
 	def get_lists(self):
 		return self.connector.get_note_list()
 
-
 	def get_dict(self):
 		return {x['content'].split("\n")[0]:x['key'] for x in self.get_lists()[0]}
 
@@ -96,44 +95,50 @@ if __name__ == '__main__':
 
 	# Retrieve notes
 	q = Querier(user, password)
+	pickle_file_name = 'flims.pickle'
+	fdict = None
 
 	print('[+] Retrieving note')
 	remote_films = filter_films(q.get_films_note())
 
 	# Check local file
-	if 'retrieved_flims' in os.listdir():
+	files = os.listdir()
+	if 'retrieved_flims' in files and pickle_file_name in files:
 
 		contents = open('retrieved_flims', 'r').read()
 		local_films = filter_films(contents)
 
 		films_to_retrieve = [x for x in remote_films if x not in local_films]
+	
+		pickle_file = pickle.Unpickler(open(pickle_file_name, 'rb'))
+		fdict = pickle_file.load()
 	else:
 		films_to_retrieve = remote_films
 
 	# Save films
 	open('retrieved_flims', 'w').write('\n'.join(remote_films))
-	
-	pickle_file_name = 'flims.pickle'
-	if films_to_retrieve != [] or pickle_file_name not in os.listdir():
-	
-		print('[+] Retrieving film details')
+
+	if films_to_retrieve != []:
+
+		print('[+] Retrieving {} film details'.format(len(films_to_retrieve)))
 
 		# Spin up threads to retrieve from IMDb
 		pool = ThreadPool(len(films_to_retrieve))
-		fdict = {list(d.keys())[0]:d[list(d.keys())[0]] for d in pool.map(get_film_meth, films_to_retrieve)}
+		retrieved = {list(d.keys())[0]:d[list(d.keys())[0]] for d in pool.map(get_film_meth, films_to_retrieve)}
 		pool.close()
 		pool.join()
 
 		# Remove films with no results (probably notes not actual titles)
-		fdict = {k:v for k,v in fdict.items() if v is not None}
-		
+		retrieved = {k:v for k,v in retrieved.items() if v is not None}
+
+		if fdict is not None:
+			fdict = {**retrieved, **fdict}
+		else:
+			fdict = retrieved
+
 		# Save to pickle
 		pickle_file = pickle.Pickler(open(pickle_file_name, 'wb'))
-		pickle_file.dump(fdict)
-	else:
-		# Pickle file is up to date
-		pickle_file = pickle.Unpickler(open(pickle_file_name, 'rb'))
-		fdict = pickle_file.load()
+		pickle_file.dump(retrieved)
 
 	# Print out all film summaries
 	summaries = {k:'{0} ({1}): {2}'.format(v['title'], v['year'], str(v['genres'])) for k,v in fdict.items()}
