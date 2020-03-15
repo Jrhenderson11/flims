@@ -82,6 +82,7 @@ def format_genre_list(genres):
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
+	parser.add_argument('-g', '--genre', help='Genre to filter for')
 	parser.add_argument('-r', '--refresh', action='store_true', help='Forces tool to ignore cached data and refresh from remote')
 
 	args = parser.parse_args()
@@ -149,11 +150,13 @@ if __name__ == '__main__':
 		pickle_file.dump(retrieved)
 
 	# Print out all film summaries
-
 	table = [(v['title'][:44], str(v['year']), format_genre_list(v['genres'])) for k,v in fdict.items()]
 
+	if args.genre is not None:
+		table = [t for t in table if args.genre.lower() in t[2].lower()]
 
 	col_width = [max(len(x) for x in col) for col in zip(*table)]
 	col_width[2] = 30
+
 	for line in table:
 		print(" " + " | ".join(["{:{}}".format(x, col_width[i]) for i, x in enumerate(line)]))

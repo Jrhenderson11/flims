@@ -17,5 +17,5 @@ This is a tool for querying and formatting a list of films that I keep in Simple
  - fix film difference logic    [✓]
  - fix innacurate imdb results  [ ]
  - make prettier				[✓] 
- - querying list by genre       [ ]
+ - querying list by genre       [✓]
  - make years easier to read    [ ]
