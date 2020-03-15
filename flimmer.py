@@ -68,7 +68,7 @@ def filter_films(contents):
 
 
 def format_genre_list(genres):
-	formatted = []
+	formatted = [Fore.RESET]
 	colour_dict = {'Comedy':Fore.LIGHTBLUE_EX + Style.BRIGHT, 'Sci-Fi':Fore.LIGHTGREEN_EX + Style.BRIGHT, 'Horror': Fore.RED + Style.DIM, 'Romance':Fore.LIGHTMAGENTA_EX + Style.BRIGHT, 'Action':Fore.RED + Style.BRIGHT, 'Thriller':Fore.RED, 'Drama':Fore.GREEN, 'Mystery':Fore.YELLOW, 'Crime':Fore.LIGHTRED_EX + Style.BRIGHT, 'Adventure': Fore.YELLOW + Style.BRIGHT, 'Fantasy':Fore.MAGENTA}
 	
 	for g in genres:
@@ -158,5 +158,10 @@ if __name__ == '__main__':
 	col_width = [max(len(x) for x in col) for col in zip(*table)]
 	col_width[2] = 30
 
+	index = 0
 	for line in table:
-		print(" " + " | ".join(["{:{}}".format(x, col_width[i]) for i, x in enumerate(line)]))
+		if index % 2 ==0 :
+			print(Fore.LIGHTBLACK_EX, end='')
+		print(" " + " | ".join(["{:{}}".format(x, col_width[i]) for i, x in enumerate(line)]) + Fore.RESET)
+
+		index +=1
