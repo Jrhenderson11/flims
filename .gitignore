@@ -1,6 +1,7 @@
 # Custom stuff
 creds.json
 flims.pickle
+retrieved_films
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
