@@ -6,11 +6,13 @@ import json
 import imdb
 import pickle
 import pprint
+import random
 import argparse
 import simplenote
 
 from getpass import getpass
 from colorama import Fore, Style
+from pyfiglet import figlet_format
 from multiprocessing.dummy import Pool as ThreadPool
 
 def red(string):
@@ -70,7 +72,7 @@ def filter_films(contents):
 def format_genre_list(genres):
 	formatted = [Fore.RESET]
 	colour_dict = {'Comedy':Fore.LIGHTBLUE_EX + Style.BRIGHT, 'Sci-Fi':Fore.LIGHTGREEN_EX + Style.BRIGHT, 'Horror': Fore.RED + Style.DIM, 'Romance':Fore.LIGHTMAGENTA_EX + Style.BRIGHT, 'Action':Fore.RED + Style.BRIGHT, 'Thriller':Fore.RED, 'Drama':Fore.GREEN, 'Mystery':Fore.YELLOW, 'Crime':Fore.LIGHTRED_EX + Style.BRIGHT, 'Adventure': Fore.YELLOW + Style.BRIGHT, 'Fantasy':Fore.MAGENTA}
-	
+
 	for g in genres:
 		if g in colour_dict:
 			formatted.append(colour_dict[g] + g + Fore.RESET + Style.NORMAL)
@@ -79,11 +81,51 @@ def format_genre_list(genres):
 
 	return ' '.join(formatted).strip()
 
+def print_film_dict(fdict):
+
+	# Print out all film summaries
+	table = [(v['title'][:44], str(v['year']), format_genre_list(v['genres'])) for k,v in fdict.items()]
+
+	col_width = [max(len(x) for x in col) for col in zip(*table)]
+	col_width[2] = 30
+
+	index = 0
+	for line in table:
+		if index % 2 ==0 :
+			print(Fore.LIGHTBLACK_EX, end='')
+		print(" " + " | ".join(["{:{}}".format(x, col_width[i]) for i, x in enumerate(line)]) + Fore.RESET)
+
+		index +=1
+
+
+def pick_film(fdict):
+	''' You asked your friends if they wanted to watch a film, they said "sure, got any ideas", you went "um..." so here you are'''
+
+	titles = list(fdict.keys())
+	randomer = random.Random()
+	film = fdict[titles[randomer.randint(0, len(fdict)-1)]]
+
+	print('Your chosen film is:')
+
+	title = film['title']
+
+	fonts = ['big', 'slant', 'small', 'standard']
+	colours = [Fore.LIGHTBLUE_EX + Style.BRIGHT, Fore.LIGHTGREEN_EX + Style.BRIGHT, Fore.RED + Style.DIM, Fore.LIGHTMAGENTA_EX + Style.BRIGHT, Fore.RED + Style.BRIGHT, Fore.RED, Fore.GREEN, Fore.YELLOW, Fore.YELLOW + Style.BRIGHT, Fore.LIGHTRED_EX + Style.BRIGHT,  Fore.YELLOW + Style.BRIGHT, Fore.MAGENTA]
+
+	font = fonts[randomer.randint(0, len(fonts)-1)]
+	colour = colours[randomer.randint(0, len(colours)-1)]
+
+
+	print(colour + figlet_format(title, font=font) + Fore.RESET + Style.NORMAL + '\n')
+	print(Fore.LIGHTBLACK_EX + '	{}'.format(film['year']) + Fore.RESET + '\n')
+	print(film['plot outline'])
+
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-g', '--genre', help='Genre to filter for')
 	parser.add_argument('-r', '--refresh', action='store_true', help='Forces tool to ignore cached data and refresh from remote')
+	parser.add_argument('-p', '--pick_for_me', action='store_true', help='The option for when you\'re an indicisive idiot and need a python script to pick your films for you')
 
 	args = parser.parse_args()
 	# Read credentials
@@ -149,19 +191,10 @@ if __name__ == '__main__':
 		pickle_file = pickle.Pickler(open(pickle_file_name, 'wb'))
 		pickle_file.dump(retrieved)
 
-	# Print out all film summaries
-	table = [(v['title'][:44], str(v['year']), format_genre_list(v['genres'])) for k,v in fdict.items()]
-
 	if args.genre is not None:
-		table = [t for t in table if args.genre.lower() in t[2].lower()]
+		fdict = {k:v for k,v in fdict.items() if args.genre.lower() in str(v['genres']).lower()}
 
-	col_width = [max(len(x) for x in col) for col in zip(*table)]
-	col_width[2] = 30
-
-	index = 0
-	for line in table:
-		if index % 2 ==0 :
-			print(Fore.LIGHTBLACK_EX, end='')
-		print(" " + " | ".join(["{:{}}".format(x, col_width[i]) for i, x in enumerate(line)]) + Fore.RESET)
-
-		index +=1
+	if args.pick_for_me:
+		pick_film(fdict)
+	else:
+		print_film_dict(fdict)
