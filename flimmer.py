@@ -109,7 +109,7 @@ def pick_film(fdict):
 
 	title = film['title']
 
-	fonts = ['big', 'slant', 'small', 'standard']
+	fonts = ['big', 'slant', 'small', 'standard', 'smslant', 'banner']
 	colours = [Fore.LIGHTBLUE_EX + Style.BRIGHT, Fore.LIGHTGREEN_EX + Style.BRIGHT, Fore.RED + Style.DIM, Fore.LIGHTMAGENTA_EX + Style.BRIGHT, Fore.RED + Style.BRIGHT, Fore.RED, Fore.GREEN, Fore.YELLOW, Fore.YELLOW + Style.BRIGHT, Fore.LIGHTRED_EX + Style.BRIGHT,  Fore.YELLOW + Style.BRIGHT, Fore.MAGENTA]
 
 	font = fonts[randomer.randint(0, len(fonts)-1)]
@@ -118,7 +118,8 @@ def pick_film(fdict):
 
 	print(colour + figlet_format(title, font=font) + Fore.RESET + Style.NORMAL + '\n')
 	print(Fore.LIGHTBLACK_EX + '	{}'.format(film['year']) + Fore.RESET + '\n')
-	print(film['plot outline'])
+	if 'plot outline' in film:
+		print(film['plot outline'])
 
 
 if __name__ == '__main__':
@@ -183,7 +184,8 @@ if __name__ == '__main__':
 		retrieved = {k:v for k,v in retrieved.items() if v is not None}
 
 		if fdict is not None:
-			fdict = {**retrieved, **fdict}
+			for x in retrieved.keys():
+				fdict[x] = retrieved[x]
 		else:
 			fdict = retrieved
 
